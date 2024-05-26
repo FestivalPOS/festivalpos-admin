@@ -89,7 +89,7 @@ export default {
     let modalInstance = null
 
     const fetchVendingPoints = async () => {
-      const response = await axios.get('http://localhost:3000/vendor-points')
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/vendor-points`)
       vendingPoints.value = response.data
     }
 
@@ -106,14 +106,14 @@ export default {
     }
 
     const addVendingPoint = async () => {
-      const response = await axios.post('http://localhost:3000/vendor-point', form.value)
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/vendor-point`, form.value)
       vendingPoints.value.push(response.data)
       closeModal()
     }
 
     const updateVendingPoint = async () => {
       const response = await axios.put(
-        `http://localhost:3000/vendor-point/${form.value.id}`,
+        `${import.meta.env.VITE_API_URL}/vendor-point/${form.value.id}`,
         form.value
       )
       const index = vendingPoints.value.findIndex((vp) => vp.id === form.value.id)
@@ -122,7 +122,7 @@ export default {
     }
 
     const deleteVendingPoint = async (id) => {
-      await axios.delete(`http://localhost:3000/vendor-point/${id}`)
+      await axios.delete(`${import.meta.env.VITE_API_URL}/vendor-point/${id}`)
       vendingPoints.value = vendingPoints.value.filter((vp) => vp.id !== id)
     }
 

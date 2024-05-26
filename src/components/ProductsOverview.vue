@@ -135,7 +135,7 @@ export default {
     let deleteConfirmModalInstance = null
 
     const fetchProducts = async () => {
-      const response = await axios.get('http://localhost:3000/products')
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/products`)
       products.value = response.data
     }
 
@@ -152,13 +152,16 @@ export default {
     }
 
     const addProduct = async () => {
-      const response = await axios.post('http://localhost:3000/product', form.value)
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/product`, form.value)
       products.value.push(response.data)
       closeModal()
     }
 
     const updateProduct = async () => {
-      const response = await axios.put(`http://localhost:3000/product/${form.value.id}`, form.value)
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/product/${form.value.id}`,
+        form.value
+      )
       const index = products.value.findIndex((p) => p.id === form.value.id)
       products.value[index] = response.data
       closeModal()
@@ -171,7 +174,7 @@ export default {
     }
 
     const deleteProduct = async () => {
-      await axios.delete(`http://localhost:3000/product/${productIdToDelete.value}`)
+      await axios.delete(`${import.meta.env.VITE_API_URL}/product/${productIdToDelete.value}`)
       products.value = products.value.filter((p) => p.id !== productIdToDelete.value)
       deleteConfirmModalInstance.hide()
     }

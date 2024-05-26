@@ -39,6 +39,9 @@
       </tbody>
     </table>
 
+    <!-- QR Code Section -->
+    <QRCodeComponent v-if="vendingPoint.id" :vendorPointId="vendingPoint.id" />
+
     <!-- Add Product Modal -->
     <div
       class="modal fade"
@@ -83,8 +86,12 @@ import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import { useRoute } from 'vue-router'
 import { Modal } from 'bootstrap'
+import QRCodeComponent from './QRCode.component.vue'
 
 export default {
+  components: {
+    QRCodeComponent
+  },
   setup() {
     const route = useRoute()
     const vendingPoint = ref({})
@@ -94,14 +101,14 @@ export default {
     let addProductModalInstance = null
 
     const fetchVendingPoint = async (id) => {
-      const response = await axios.get(`http://localhost:3000/vendor-point/${id}`)
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/vendor-point/${id}`)
       vendingPoint.value = response.data
       vendorPointProducts.value = response.data.vendorPointProducts
       fetchAvailableProducts()
     }
 
     const fetchAvailableProducts = async () => {
-      const response = await axios.get('http://localhost:3000/products')
+      const response = await axios.get('${import.meta.env.VITE_API_URL}/products')
       const existingProductIds = vendorPointProducts.value.map(
         (vendorProduct) => vendorProduct.product.id
       )
@@ -112,7 +119,7 @@ export default {
 
     const removeProduct = async (vendorProductId) => {
       await axios.delete(
-        `http://localhost:3000/vendor-point/${vendingPoint.value.id}/product/${vendorProductId}`
+        `${import.meta.env.VITE_API_URL}/vendor-point/${vendingPoint.value.id}/product/${vendorProductId}`
       )
       vendorPointProducts.value = vendorPointProducts.value.filter(
         (vendorProduct) => vendorProduct.id !== vendorProductId
@@ -129,7 +136,7 @@ export default {
     const addProduct = async () => {
       if (selectedProductId.value) {
         const response = await axios.post(
-          `http://localhost:3000/vendor-point/${vendingPoint.value.id}/product`,
+          `${import.meta.env.VITE_API_URL}/vendor-point/${vendingPoint.value.id}/product`,
           { productId: selectedProductId.value, order: vendorPointProducts.value.length + 1 }
         )
         vendorPointProducts.value.push(response.data)
@@ -139,9 +146,12 @@ export default {
     }
 
     const updateOrder = async (updatedProducts) => {
-      await axios.put(`http://localhost:3000/vendor-point/${vendingPoint.value.id}/product/order`, {
-        products: updatedProducts
-      })
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/vendor-point/${vendingPoint.value.id}/product/order`,
+        {
+          productOrders: updatedProducts
+        }
+      )
     }
 
     const moveUp = async (index) => {
@@ -149,8 +159,8 @@ export default {
         const product = vendorPointProducts.value[index]
         const aboveProduct = vendorPointProducts.value[index - 1]
         const updatedProducts = [
-          { productId: product.id, order: aboveProduct.order },
-          { productId: aboveProduct.id, order: product.order }
+          { productId: product.product.id, order: aboveProduct.order },
+          { productId: aboveProduct.product.id, order: product.order }
         ]
         await updateOrder(updatedProducts)
         fetchVendingPoint(vendingPoint.value.id) // Refresh the data to reflect the changes
@@ -162,8 +172,8 @@ export default {
         const product = vendorPointProducts.value[index]
         const belowProduct = vendorPointProducts.value[index + 1]
         const updatedProducts = [
-          { productId: product.id, order: belowProduct.order },
-          { productId: belowProduct.id, order: product.order }
+          { productId: product.product.id, order: belowProduct.order },
+          { productId: belowProduct.product.id, order: product.order }
         ]
         await updateOrder(updatedProducts)
         fetchVendingPoint(vendingPoint.value.id) // Refresh the data to reflect the changes
