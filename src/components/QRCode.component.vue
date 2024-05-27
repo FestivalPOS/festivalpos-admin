@@ -13,16 +13,18 @@
         />
       </div>
       <div class="col-3">
-        <button class="btn btn-primary" @click="downloadQrCode('svg')">Download as SVG</button>
+        <button class="btn btn-primary" @click="downloadQrCode('svg')">Download as SVG</button
+        ><br />
         <button class="btn btn-primary mt-3" @click="downloadQrCode('png')">Download as PNG</button>
       </div>
     </div>
+    <div class="mt-2">{{ value }}</div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
-import QrcodeVue, { Level, RenderAs } from 'qrcode.vue'
+import QrcodeVue, { type RenderAs, type Level } from 'qrcode.vue'
 import { toPng, toSvg } from 'html-to-image'
 
 export default defineComponent({

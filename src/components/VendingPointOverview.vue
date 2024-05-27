@@ -17,7 +17,10 @@
         <tr v-for="(vendorProduct, index) in sortedVendorPointProducts" :key="vendorProduct.id">
           <td>{{ vendorProduct.product.name }}</td>
           <td class="text-end">
-            <button class="btn btn-sm btn-danger me-2" @click="removeProduct(vendorProduct.id)">
+            <button
+              class="btn btn-sm btn-danger me-2"
+              @click="removeProduct(vendorProduct.product.id)"
+            >
               Remove
             </button>
             <button
@@ -108,13 +111,22 @@ export default {
     }
 
     const fetchAvailableProducts = async () => {
-      const response = await axios.get('${import.meta.env.VITE_API_URL}/products')
-      const existingProductIds = vendorPointProducts.value.map(
-        (vendorProduct) => vendorProduct.product.id
-      )
-      availableProducts.value = response.data.filter(
-        (product) => !existingProductIds.includes(product.id)
-      )
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/products`)
+
+        if (Array.isArray(response.data)) {
+          const existingProductIds = vendorPointProducts.value.map(
+            (vendorProduct) => vendorProduct.product.id
+          )
+          availableProducts.value = response.data.filter(
+            (product) => !existingProductIds.includes(product.id)
+          )
+        } else {
+          console.error('Expected an array but received:', response.data)
+        }
+      } catch (error) {
+        console.error('Error fetching available products:', error)
+      }
     }
 
     const removeProduct = async (vendorProductId) => {
@@ -122,7 +134,7 @@ export default {
         `${import.meta.env.VITE_API_URL}/vendor-point/${vendingPoint.value.id}/product/${vendorProductId}`
       )
       vendorPointProducts.value = vendorPointProducts.value.filter(
-        (vendorProduct) => vendorProduct.id !== vendorProductId
+        (vendorProduct) => vendorProduct.product.id !== vendorProductId
       )
       fetchAvailableProducts()
     }
@@ -156,27 +168,51 @@ export default {
 
     const moveUp = async (index) => {
       if (index > 0) {
-        const product = vendorPointProducts.value[index]
-        const aboveProduct = vendorPointProducts.value[index - 1]
-        const updatedProducts = [
-          { productId: product.product.id, order: aboveProduct.order },
-          { productId: aboveProduct.product.id, order: product.order }
-        ]
-        await updateOrder(updatedProducts)
-        fetchVendingPoint(vendingPoint.value.id) // Refresh the data to reflect the changes
+        const updatedProducts = [...vendorPointProducts.value]
+        const product = updatedProducts[index]
+        const aboveProduct = updatedProducts[index - 1]
+
+        // Swap the orders locally
+        const tempOrder = product.order
+        product.order = aboveProduct.order
+        aboveProduct.order = tempOrder
+
+        // Swap the positions in the array
+        updatedProducts[index] = aboveProduct
+        updatedProducts[index - 1] = product
+
+        vendorPointProducts.value = updatedProducts
+
+        // Send the update to the server
+        await updateOrder([
+          { productId: product.product.id, order: product.order },
+          { productId: aboveProduct.product.id, order: aboveProduct.order }
+        ])
       }
     }
 
     const moveDown = async (index) => {
       if (index < vendorPointProducts.value.length - 1) {
-        const product = vendorPointProducts.value[index]
-        const belowProduct = vendorPointProducts.value[index + 1]
-        const updatedProducts = [
-          { productId: product.product.id, order: belowProduct.order },
-          { productId: belowProduct.product.id, order: product.order }
-        ]
-        await updateOrder(updatedProducts)
-        fetchVendingPoint(vendingPoint.value.id) // Refresh the data to reflect the changes
+        const updatedProducts = [...vendorPointProducts.value]
+        const product = updatedProducts[index]
+        const belowProduct = updatedProducts[index + 1]
+
+        // Swap the orders locally
+        const tempOrder = product.order
+        product.order = belowProduct.order
+        belowProduct.order = tempOrder
+
+        // Swap the positions in the array
+        updatedProducts[index] = belowProduct
+        updatedProducts[index + 1] = product
+
+        vendorPointProducts.value = updatedProducts
+
+        // Send the update to the server
+        await updateOrder([
+          { productId: product.product.id, order: product.order },
+          { productId: belowProduct.product.id, order: belowProduct.order }
+        ])
       }
     }
 

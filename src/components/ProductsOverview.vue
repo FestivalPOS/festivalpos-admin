@@ -27,6 +27,7 @@
     </table>
 
     <!-- Add/Edit Modal -->
+    <!-- Add/Edit Modal -->
     <div
       class="modal fade"
       id="productModal"
@@ -76,6 +77,20 @@
                   />
                 </div>
               </div>
+              <div class="mb-3 row">
+                <div class="col-3">
+                  <label for="product-tile-color" class="form-label">Tile Color</label>
+                </div>
+                <div class="col-5">
+                  <vue3-colorpicker
+                    v-model:pureColor="form.tilecolor"
+                    format="hex"
+                    shape="square"
+                    picker-type="fk"
+                    use-type="pure"
+                  ></vue3-colorpicker>
+                </div>
+              </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -120,16 +135,23 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { Modal } from 'bootstrap'
+import { ColorPicker } from 'vue3-colorpicker'
+import 'vue3-colorpicker/style.css'
 
 export default {
+  components: {
+    'vue3-colorpicker': ColorPicker
+  },
   setup() {
     const products = ref([])
     const isEdit = ref(false)
     const form = ref({
       id: null,
       name: '',
-      price: null
+      price: null,
+      tilecolor: '#ffffff' // Initialize with default color
     })
+
     const productIdToDelete = ref(null)
     let modalInstance = null
     let deleteConfirmModalInstance = null
@@ -137,6 +159,7 @@ export default {
     const fetchProducts = async () => {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/products`)
       products.value = response.data
+      console.log(products.value)
     }
 
     const showAddModal = () => {
