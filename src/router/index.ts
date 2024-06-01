@@ -35,11 +35,42 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAuth && !localStorage.getItem('token')) {
+  const token = localStorage.getItem('token')
+  if (to.meta.requiresAuth && !token) {
     next({ name: 'login' })
+  } else if (token) {
+    // Check jwt expired
+    const jwtPayload = parseJwt(token)
+    if (jwtPayload.exp < Date.now() / 1000) {
+      // token expired
+      localStorage.removeItem('token') // Remove expired token
+      next({ name: 'login' })
+    } else {
+      next()
+    }
   } else {
     next()
   }
 })
+
+function parseJwt(token: string) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(function (c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        })
+        .join('')
+    )
+
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    console.error('Failed to parse JWT:', e)
+    return null
+  }
+}
 
 export default router

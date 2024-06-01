@@ -74,12 +74,13 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { Modal } from 'bootstrap'
 
 export default {
   setup() {
+    const loading = ref(true)
     const vendingPoints = ref([])
     const isEdit = ref(false)
     const form = ref({
@@ -89,8 +90,18 @@ export default {
     let modalInstance = null
 
     const fetchVendingPoints = async () => {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/vendor-points`)
-      vendingPoints.value = response.data
+      loading.value = true
+      axios
+        .get(`${import.meta.env.VITE_API_URL}/vendor-points`)
+        .then((response) => {
+          vendingPoints.value = response.data
+        })
+        .catch((error) => {
+          console.log(error)
+        })
+        .finally(() => {
+          loading.value = false
+        })
     }
 
     const showAddModal = () => {

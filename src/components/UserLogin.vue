@@ -53,9 +53,14 @@ async function login() {
     const data = await response.json()
     localStorage.setItem('token', data.token) // Assuming the response contains a token field
     router.push('/')
-  } catch (error) {
-    alert(error.message)
-    console.log(error.message)
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      alert(error.message)
+      console.log(error.message)
+    } else {
+      alert('An unknown error occurred')
+      console.log('An unknown error occurred')
+    }
   }
 }
 </script>
