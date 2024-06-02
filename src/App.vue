@@ -11,9 +11,9 @@
           />
           FestivalPOS
         </a>
-        <div class="d-flex h5 mb-0" v-if="festival != ''">{{ festival }}</div>
+        <div class="d-flex h5 mb-0" v-if="festival">{{ festival }}</div>
         <div class="d-flex">
-          <a href="/" class="nav-link" v-if="festival != ''">
+          <a href="/" class="nav-link" v-if="festival">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="bi d-block mx-auto mb-1"
@@ -76,7 +76,7 @@
         </div>
       </div>
     </nav>
-    <nav class="navbar navbar-expand-lg border-bottom" v-if="festival_id != ''">
+    <nav class="navbar navbar-expand-lg border-bottom" v-if="festival_id">
       <div class="" id="navbarNav">
         <ul class="navbar-nav">
           <li class="nav-item">
