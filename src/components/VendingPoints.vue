@@ -20,7 +20,7 @@
           </td>
           <td class="text-end">
             <button class="btn btn-sm btn-warning" @click="editVendingPoint(stand)">Edit</button>
-            <button class="btn btn-sm btn-danger ms-2" @click="deleteVendingPoint(stand.id)">
+            <button class="btn btn-sm btn-danger ms-2" @click="confirmDeleteVendingPoint(stand.id)">
               Delete
             </button>
           </td>
@@ -74,7 +74,7 @@
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { Modal } from 'bootstrap'
 
@@ -85,14 +85,16 @@ export default {
     const isEdit = ref(false)
     const form = ref({
       id: null,
-      name: ''
+      name: '',
+      festival_id: localStorage.getItem('festival_id')
     })
     let modalInstance = null
 
     const fetchVendingPoints = async () => {
       loading.value = true
+      console.log('test')
       axios
-        .get(`${import.meta.env.VITE_API_URL}/vendor-points`)
+        .get(`${import.meta.env.VITE_API_URL}/vendor-points/${localStorage.getItem('festival_id')}`)
         .then((response) => {
           vendingPoints.value = response.data
         })
@@ -106,7 +108,7 @@ export default {
 
     const showAddModal = () => {
       isEdit.value = false
-      form.value = { id: null, name: '' }
+      form.value = { id: null, name: '', festival_id: localStorage.getItem('festival_id') }
       showModal()
     }
 
@@ -146,7 +148,9 @@ export default {
       modalInstance.hide()
     }
 
-    onMounted(fetchVendingPoints)
+    onMounted(() => {
+      fetchVendingPoints()
+    })
 
     return {
       vendingPoints,

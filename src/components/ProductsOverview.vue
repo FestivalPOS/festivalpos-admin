@@ -149,7 +149,8 @@ export default {
       id: null,
       name: '',
       price: null,
-      tilecolor: '#ffffff' // Initialize with default color
+      tilecolor: '#ffffff',
+      festival_id: localStorage.getItem('festival_id')
     })
 
     const productIdToDelete = ref(null)
@@ -157,14 +158,21 @@ export default {
     let deleteConfirmModalInstance = null
 
     const fetchProducts = async () => {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/products`)
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/products/${localStorage.getItem('festival_id')}`
+      )
       products.value = response.data
       console.log(products.value)
     }
 
     const showAddModal = () => {
       isEdit.value = false
-      form.value = { id: null, name: '', price: null }
+      form.value = {
+        id: null,
+        name: '',
+        price: null,
+        festival_id: localStorage.getItem('festival_id')
+      }
       showModal()
     }
 

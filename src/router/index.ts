@@ -3,6 +3,7 @@ import VendingPoints from '../components/VendingPoints.vue'
 import ProductsOverview from '../components/ProductsOverview.vue'
 import VendingPointOverview from '../components/VendingPointOverview.vue'
 import Login from '../components/UserLogin.vue'
+import FestivalsOverview from '../components/FestivalsOverview.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -15,6 +16,12 @@ const router = createRouter({
     },
     {
       path: '/',
+      name: 'festivals',
+      component: FestivalsOverview,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/pos',
       name: 'vendingpoints',
       component: VendingPoints,
       meta: { requiresAuth: true }

@@ -11,7 +11,7 @@
         <input type="password" id="password" class="form-control" v-model="password" required />
       </div>
       <button
-        type="button"
+        type="submit"
         data-mdb-button-init
         data-mdb-ripple-init
         class="btn btn-primary btn-block"

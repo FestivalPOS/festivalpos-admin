@@ -112,7 +112,9 @@ export default {
 
     const fetchAvailableProducts = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/products`)
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/products/${localStorage.getItem('festival_id')}`
+        )
 
         if (Array.isArray(response.data)) {
           const existingProductIds = vendorPointProducts.value.map(
