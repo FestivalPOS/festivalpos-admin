@@ -15,7 +15,7 @@
       <tbody>
         <tr v-for="festival in festivals" :key="festival.id">
           <td>
-            <a href="#" @click="setFestival(festival)">
+            <a href="#" @click="selectFestival(festival)">
               {{ festival.name }}
             </a>
           </td>
@@ -146,7 +146,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import axios from 'axios'
 import { Modal } from 'bootstrap'
 import { useRouter } from 'vue-router'
@@ -165,6 +165,7 @@ export default {
     let modalInstance = null
     let deleteConfirmModalInstance = null
     const router = useRouter()
+    const festivalStore = inject('festivalStore')
 
     const fetchFestivals = async () => {
       loading.value = true
@@ -189,7 +190,7 @@ export default {
 
     const editFestival = (festival) => {
       isEdit.value = true
-      form.value = { ...festival }
+      form.value = { ...festival, festival_id: festivalStore.state.festival_id }
       showModal()
     }
 
@@ -200,7 +201,6 @@ export default {
     }
 
     const updateFestival = async () => {
-      console.log(form.value)
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/festival/${form.value.id}`,
         form.value
@@ -219,6 +219,7 @@ export default {
     const deleteFestival = async () => {
       await axios.delete(`${import.meta.env.VITE_API_URL}/festival/${festivalIdToDelete.value}`)
       festivals.value = festivals.value.filter((vp) => vp.id !== festivalIdToDelete.value)
+      unsetFestival()
       deleteConfirmModalInstance.hide()
     }
 
@@ -231,14 +232,15 @@ export default {
       modalInstance.hide()
     }
 
-    const setFestival = (festival) => {
-      console.log(festival)
-      localStorage.setItem('festival_id', festival.id)
-      localStorage.setItem('festival', festival.name)
+    const selectFestival = (festival) => {
+      festivalStore.setFestival(festival.name, festival.id) // Set the global state
       router.push('/pos')
     }
 
-    onMounted(fetchFestivals)
+    onMounted(() => {
+      fetchFestivals()
+      festivalStore.unsetFestival()
+    })
 
     return {
       festivals,
@@ -250,7 +252,7 @@ export default {
       updateFestival,
       confirmDeleteFestival,
       deleteFestival,
-      setFestival
+      selectFestival
     }
   }
 }

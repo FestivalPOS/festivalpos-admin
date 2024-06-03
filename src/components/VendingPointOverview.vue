@@ -25,14 +25,14 @@
             </button>
             <button
               class="btn btn-sm btn-secondary me-2"
-              @click="moveUp(index)"
+              @click="moveUp(vendorProduct.product.id)"
               :disabled="index === 0"
             >
               Up
             </button>
             <button
               class="btn btn-sm btn-secondary"
-              @click="moveDown(index)"
+              @click="moveDown(vendorProduct.product.id)"
               :disabled="index === sortedVendorPointProducts.length - 1"
             >
               Down
@@ -85,7 +85,7 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, inject } from 'vue'
 import axios from 'axios'
 import { useRoute } from 'vue-router'
 import { Modal } from 'bootstrap'
@@ -102,18 +102,23 @@ export default {
     const availableProducts = ref([])
     const selectedProductId = ref(null)
     let addProductModalInstance = null
+    const festivalStore = inject('festivalStore')
 
     const fetchVendingPoint = async (id) => {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/vendor-point/${id}`)
-      vendingPoint.value = response.data
-      vendorPointProducts.value = response.data.vendorPointProducts
-      fetchAvailableProducts()
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/vendor-point/${id}`)
+        vendingPoint.value = response.data
+        vendorPointProducts.value = response.data.vendorPointProducts
+        fetchAvailableProducts()
+      } catch (error) {
+        console.error('Error fetching vending point:', error)
+      }
     }
 
     const fetchAvailableProducts = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/products/${localStorage.getItem('festival_id')}`
+          `${import.meta.env.VITE_API_URL}/products/${festivalStore.state.festival_id}`
         )
 
         if (Array.isArray(response.data)) {
@@ -132,13 +137,16 @@ export default {
     }
 
     const removeProduct = async (vendorProductId) => {
-      await axios.delete(
-        `${import.meta.env.VITE_API_URL}/vendor-point/${vendingPoint.value.id}/product/${vendorProductId}`
-      )
-      vendorPointProducts.value = vendorPointProducts.value.filter(
-        (vendorProduct) => vendorProduct.product.id !== vendorProductId
-      )
-      fetchAvailableProducts()
+      try {
+        await axios.delete(
+          `${import.meta.env.VITE_API_URL}/vendor-point/${vendingPoint.value.id}/product/${vendorProductId}`
+        )
+        // Refetch vendor point products to ensure correct ordering
+        await fetchVendingPoint(vendingPoint.value.id)
+      } catch (error) {
+        console.error('Error removing product:', error)
+        res.status(500).json({ message: error.message })
+      }
     }
 
     const showAddProductModal = () => {
@@ -159,62 +167,25 @@ export default {
       }
     }
 
-    const updateOrder = async (updatedProducts) => {
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/vendor-point/${vendingPoint.value.id}/product/order`,
-        {
-          productOrders: updatedProducts
-        }
-      )
-    }
-
-    const moveUp = async (index) => {
-      if (index > 0) {
-        const updatedProducts = [...vendorPointProducts.value]
-        const product = updatedProducts[index]
-        const aboveProduct = updatedProducts[index - 1]
-
-        // Swap the orders locally
-        const tempOrder = product.order
-        product.order = aboveProduct.order
-        aboveProduct.order = tempOrder
-
-        // Swap the positions in the array
-        updatedProducts[index] = aboveProduct
-        updatedProducts[index - 1] = product
-
-        vendorPointProducts.value = updatedProducts
-
-        // Send the update to the server
-        await updateOrder([
-          { productId: product.product.id, order: product.order },
-          { productId: aboveProduct.product.id, order: aboveProduct.order }
-        ])
+    const moveUp = async (productId) => {
+      try {
+        await axios.put(
+          `${import.meta.env.VITE_API_URL}/vendor-point/${vendingPoint.value.id}/product/${productId}/move-up`
+        )
+        await fetchVendingPoint(vendingPoint.value.id)
+      } catch (error) {
+        console.error('Error moving product up:', error)
       }
     }
 
-    const moveDown = async (index) => {
-      if (index < vendorPointProducts.value.length - 1) {
-        const updatedProducts = [...vendorPointProducts.value]
-        const product = updatedProducts[index]
-        const belowProduct = updatedProducts[index + 1]
-
-        // Swap the orders locally
-        const tempOrder = product.order
-        product.order = belowProduct.order
-        belowProduct.order = tempOrder
-
-        // Swap the positions in the array
-        updatedProducts[index] = belowProduct
-        updatedProducts[index + 1] = product
-
-        vendorPointProducts.value = updatedProducts
-
-        // Send the update to the server
-        await updateOrder([
-          { productId: product.product.id, order: product.order },
-          { productId: belowProduct.product.id, order: belowProduct.order }
-        ])
+    const moveDown = async (productId) => {
+      try {
+        await axios.put(
+          `${import.meta.env.VITE_API_URL}/vendor-point/${vendingPoint.value.id}/product/${productId}/move-down`
+        )
+        await fetchVendingPoint(vendingPoint.value.id)
+      } catch (error) {
+        console.error('Error moving product down:', error)
       }
     }
 
@@ -235,7 +206,6 @@ export default {
       removeProduct,
       showAddProductModal,
       addProduct,
-      updateOrder,
       moveUp,
       moveDown
     }

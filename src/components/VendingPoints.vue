@@ -70,31 +70,61 @@
         </div>
       </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div
+      class="modal fade"
+      id="deleteConfirmModal"
+      tabindex="-1"
+      aria-labelledby="deleteConfirmModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Delete</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">Are you sure you want to delete this vending point?</div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-danger" @click="deleteVendingPoint">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import axios from 'axios'
 import { Modal } from 'bootstrap'
 
 export default {
   setup() {
+    const festivalStore = inject('festivalStore')
     const loading = ref(true)
     const vendingPoints = ref([])
     const isEdit = ref(false)
     const form = ref({
       id: null,
       name: '',
-      festival_id: localStorage.getItem('festival_id')
+      festival_id: festivalStore.state.festival_id
     })
     let modalInstance = null
+    const vendingPointIdToDelete = ref(null)
+    let deleteConfirmModalInstance = null
 
     const fetchVendingPoints = async () => {
       loading.value = true
-      console.log('test')
       axios
-        .get(`${import.meta.env.VITE_API_URL}/vendor-points/${localStorage.getItem('festival_id')}`)
+        .get(`${import.meta.env.VITE_API_URL}/vendor-points/${festivalStore.state.festival_id}`)
         .then((response) => {
           vendingPoints.value = response.data
         })
@@ -108,7 +138,7 @@ export default {
 
     const showAddModal = () => {
       isEdit.value = false
-      form.value = { id: null, name: '', festival_id: localStorage.getItem('festival_id') }
+      form.value = { id: null, name: '', festival_id: festivalStore.state.festival_id }
       showModal()
     }
 
@@ -134,9 +164,20 @@ export default {
       closeModal()
     }
 
+    const confirmDeleteVendingPoint = (id) => {
+      vendingPointIdToDelete.value = id
+      deleteConfirmModalInstance = new Modal(document.getElementById('deleteConfirmModal'))
+      deleteConfirmModalInstance.show()
+    }
+
     const deleteVendingPoint = async (id) => {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/vendor-point/${id}`)
-      vendingPoints.value = vendingPoints.value.filter((vp) => vp.id !== id)
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/vendor-point/${vendingPointIdToDelete.value}`
+      )
+      vendingPoints.value = vendingPoints.value.filter(
+        (vp) => vp.id !== vendingPointIdToDelete.value
+      )
+      deleteConfirmModalInstance.hide()
     }
 
     const showModal = () => {
@@ -160,6 +201,7 @@ export default {
       editVendingPoint,
       addVendingPoint,
       updateVendingPoint,
+      confirmDeleteVendingPoint,
       deleteVendingPoint
     }
   }

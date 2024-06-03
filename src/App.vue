@@ -11,9 +11,11 @@
           />
           FestivalPOS
         </a>
-        <div class="d-flex h5 mb-0" v-if="festival">{{ festival }}</div>
+        <div class="d-flex h5 mb-0" v-if="festivalStore.state.festival">
+          {{ festivalStore.state.festival }}
+        </div>
         <div class="d-flex">
-          <a href="/" class="nav-link" v-if="festival">
+          <router-link class="nav-link" to="/" v-if="festivalStore.state.festival">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="bi d-block mx-auto mb-1"
@@ -54,8 +56,8 @@
               />
             </svg>
             Festivals
-          </a>
-          <a href="#" class="nav-link ms-4" @click="logout">
+          </router-link>
+          <router-link to="/" class="nav-link ms-4" @click="logout">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="bi d-block mx-auto mb-1"
@@ -72,22 +74,22 @@
               />
             </svg>
             Logout
-          </a>
+          </router-link>
         </div>
       </div>
     </nav>
-    <nav class="navbar navbar-expand-lg border-bottom" v-if="festival_id">
+    <nav class="navbar navbar-expand-lg border-bottom" v-if="festivalStore.state.festival_id">
       <div class="" id="navbarNav">
         <ul class="navbar-nav">
           <li class="nav-item">
-            <a class="nav-link" href="/pos">Vending Points</a>
+            <router-link class="nav-link" to="/pos">Vending Points</router-link>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/products">Products</a>
+            <router-link class="nav-link" to="/products">Products</router-link>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/sales">Sales</a>
-          </li>
+          <!-- <li class="nav-item">
+            <router-link class="nav-link" to="/sales">Sales</router-link>
+          </li> -->
         </ul>
       </div>
     </nav>
@@ -98,22 +100,19 @@
 <style scoped></style>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, inject } from 'vue'
 import { useRoute, RouterView, useRouter } from 'vue-router'
 
 document.documentElement.setAttribute('data-bs-theme', 'dark')
 
 const isAuthenticated = ref(false)
-const festival = ref('')
-const festival_id = ref('')
 const router = useRouter()
+const festivalStore = inject('festivalStore')
 
 onMounted(() => {
   isAuthenticated.value = !!localStorage.getItem('token')
-  festival.value = localStorage.getItem('festival')
-  festival_id.value = localStorage.getItem('festival_id')
 
-  if (!festival_id.value) {
+  if (!festivalStore.state.festival_id) {
     router.push('/')
   }
 })
@@ -124,10 +123,8 @@ watch(
   () => route.path,
   () => {
     isAuthenticated.value = !!localStorage.getItem('token')
-    festival.value = localStorage.getItem('festival')
-    festival_id.value = localStorage.getItem('festival_id')
 
-    if (!festival_id.value) {
+    if (!festivalStore.state.festival_id) {
       router.push('/')
     }
   }
@@ -136,8 +133,7 @@ watch(
 function logout() {
   // Clear the token from local storage
   localStorage.removeItem('token')
-  localStorage.removeItem('festival')
-  localStorage.removeItem('festival_id')
+  festivalStore.unsetFestival()
 
   // Redirect to login page
   router.push('/login')
