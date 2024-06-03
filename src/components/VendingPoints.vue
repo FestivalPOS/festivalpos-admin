@@ -170,7 +170,7 @@ export default {
       deleteConfirmModalInstance.show()
     }
 
-    const deleteVendingPoint = async (id) => {
+    const deleteVendingPoint = async () => {
       await axios.delete(
         `${import.meta.env.VITE_API_URL}/vendor-point/${vendingPointIdToDelete.value}`
       )
