@@ -4,6 +4,7 @@ import ProductsOverview from '../components/ProductsOverview.vue'
 import VendingPointOverview from '../components/VendingPointOverview.vue'
 import Login from '../components/UserLogin.vue'
 import FestivalsOverview from '../components/FestivalsOverview.vue'
+import SalesDashbord from '@/components/Sales/SalesDashbord.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -36,6 +37,12 @@ const router = createRouter({
       path: '/vendor-point/:id',
       name: 'VendingPointOverview',
       component: VendingPointOverview,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/sales',
+      name: 'SalesDashbord',
+      component: SalesDashbord,
       meta: { requiresAuth: true }
     }
   ]

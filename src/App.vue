@@ -87,9 +87,9 @@
           <li class="nav-item">
             <router-link class="nav-link" to="/products">Products</router-link>
           </li>
-          <!-- <li class="nav-item">
+          <li class="nav-item">
             <router-link class="nav-link" to="/sales">Sales</router-link>
-          </li> -->
+          </li>
         </ul>
       </div>
     </nav>
