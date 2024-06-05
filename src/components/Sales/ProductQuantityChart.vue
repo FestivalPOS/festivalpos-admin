@@ -28,6 +28,19 @@ export default {
       plugins: {
         legend: {
           display: false
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false
+        }
+      },
+      responsive: true,
+      scales: {
+        x: {
+          stacked: true
+        },
+        y: {
+          stacked: true
         }
       }
     }
@@ -42,41 +55,34 @@ export default {
 
       console.log(productSalesResponse.data)
 
-      const newChartData = {
-        labels: [],
-        datasets: [
-          {
-            label: 'Quantity',
-            data: [],
-            backgroundColor: [
-              'rgba(255, 99, 132, 0.2)',
-              'rgba(255, 159, 64, 0.2)',
-              'rgba(255, 205, 86, 0.2)',
-              'rgba(75, 192, 192, 0.2)',
-              'rgba(54, 162, 235, 0.2)',
-              'rgba(153, 102, 255, 0.2)',
-              'rgba(201, 203, 207, 0.2)'
-            ],
-            borderColor: [
-              'rgb(255, 99, 132)',
-              'rgb(255, 159, 64)',
-              'rgb(255, 205, 86)',
-              'rgb(75, 192, 192)',
-              'rgb(54, 162, 235)',
-              'rgb(153, 102, 255)',
-              'rgb(201, 203, 207)'
-            ],
-            borderWidth: 1
-          }
-        ]
-      }
+      const vendors = []
+      const products = {}
+      productSalesResponse.data.forEach((item) => {
+        if (!vendors.includes(item.vendorPointName)) {
+          vendors.push(item.vendorPointName)
+        }
+        if (!products[item.productName]) {
+          products[item.productName] = {}
+        }
+        if (!products[item.productName][item.vendorPointName]) {
+          products[item.productName][item.vendorPointName] = 0
+        }
+        products[item.productName][item.vendorPointName] += parseInt(item.totalQuantity)
+      })
 
-      newChartData.labels = productSalesResponse.data.map((item) => item.productName)
-      newChartData.datasets[0].data = productSalesResponse.data.map((item) => item.totalQuantity)
+      const datasets = Object.keys(products).map((product, index) => {
+        return {
+          label: product,
+          data: vendors.map((vendor) => products[product][vendor] || 0),
+          backgroundColor: `rgba(${index * 50}, ${index * 50}, ${index * 50}, 0.2)`,
+          borderColor: `rgba(${index * 50}, ${index * 50}, ${index * 50}, 1)`,
+          borderWidth: 1
+        }
+      })
 
       this.chartData = {
-        labels: newChartData.labels,
-        datasets: newChartData.datasets
+        labels: vendors,
+        datasets
       }
 
       this.loaded = true
