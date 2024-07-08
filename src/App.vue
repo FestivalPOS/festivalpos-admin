@@ -102,6 +102,7 @@
 <script setup>
 import { ref, onMounted, watch, inject } from 'vue'
 import { useRoute, RouterView, useRouter } from 'vue-router'
+import { clearAuthToken, getAuthToken } from './tokenHandler';
 
 document.documentElement.setAttribute('data-bs-theme', 'dark')
 
@@ -110,7 +111,7 @@ const router = useRouter()
 const festivalStore = inject('festivalStore')
 
 onMounted(() => {
-  isAuthenticated.value = !!localStorage.getItem('token')
+  isAuthenticated.value = !!getAuthToken();
 
   if (!festivalStore.state.festival_id) {
     router.push('/')
@@ -122,7 +123,7 @@ const route = useRoute()
 watch(
   () => route.path,
   () => {
-    isAuthenticated.value = !!localStorage.getItem('token')
+    isAuthenticated.value = !!getAuthToken();
 
     if (!festivalStore.state.festival_id) {
       router.push('/')
@@ -132,7 +133,7 @@ watch(
 
 function logout() {
   // Clear the token from local storage
-  localStorage.removeItem('token')
+  clearAuthToken();
   festivalStore.unsetFestival()
 
   // Redirect to login page
