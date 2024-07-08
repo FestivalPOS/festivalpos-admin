@@ -24,6 +24,7 @@
 </template>
 
 <script setup lang="ts">
+import { updateAuthToken } from '@/tokenHandler';
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -51,8 +52,13 @@ async function login() {
     }
 
     const data = await response.json()
-    localStorage.setItem('token', data.token) // Assuming the response contains a token field
-    router.push('/')
+
+    // Assuming the response contains a token field
+    if(data.token)
+    {
+      updateAuthToken(data.token);
+    }
+    router.push('/');
   } catch (error: unknown) {
     if (error instanceof Error) {
       alert(error.message)
