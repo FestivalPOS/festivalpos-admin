@@ -4,6 +4,7 @@ import ProductsOverview from '../components/ProductsOverview.vue'
 import VendingPointOverview from '../components/VendingPointOverview.vue'
 import Login from '../components/UserLogin.vue'
 import FestivalsOverview from '../components/FestivalsOverview.vue'
+import { clearAuthToken, getAuthToken } from '@/tokenHandler'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -42,7 +43,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token')
+  const token = getAuthToken();
   if (to.meta.requiresAuth && !token) {
     next({ name: 'login' })
   } else if (token) {
@@ -50,7 +51,7 @@ router.beforeEach((to, from, next) => {
     const jwtPayload = parseJwt(token)
     if (jwtPayload.exp < Date.now() / 1000) {
       // token expired
-      localStorage.removeItem('token') // Remove expired token
+      clearAuthToken(); // Remove expired token
       next({ name: 'login' })
     } else {
       next()
